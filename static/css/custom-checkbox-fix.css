@@ -1,0 +1,17 @@
+/* Custom checkbox fix for admin edit user page */
+.admin-edit-user-page .form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.admin-edit-user-page .form-check-input {
+  margin-right: 0.5rem;
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.admin-edit-user-page .form-check-label {
+  margin-bottom: 0;
+  user-select: none;
+}

@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Management - QuoteManager{% endblock %}
+
+{% block extra_js %}
+<script>
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to show toast messages
+function showToast(title, message, type) {
+    // Create toast element if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast show bg-${type} text-white`;
+    toast.style.minWidth = '300px';
+    toast.style.maxWidth = '350px';
+    toast.style.marginBottom = '10px';
+    toast.style.borderRadius = '4px';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    toast.style.overflow = 'hidden';
+    
+    toast.innerHTML = `
+        <div class="toast-header bg-${type} text-white border-0">
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove toast after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    // Add close button functionality
+    const closeButton = toast.querySelector('.btn-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const csrftoken = getCookie('csrftoken');
+    
+    // Handle delete service button clicks
+    document.querySelectorAll('.delete-service-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const serviceId = this.getAttribute('data-id');
+            const serviceName = this.getAttribute('data-name');
+            const row = this.closest('tr');
+            
+            // Show confirmation dialog
+            if (confirm(`Are you sure you want to delete the service "${serviceName}"?`)) {
+                fetch(`/admin/services/${serviceId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: `csrfmiddlewaretoken=${encodeURIComponent(csrftoken)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Remove the row from the table
+                        row.remove();
+                        showToast('Success', 'Service has been deleted successfully.', 'success');
+                        
+                        // If no more services, show empty state
+                        const tbody = document.querySelector('table tbody');
+                        if (tbody && tbody.children.length === 0) {
+                            const emptyState = `
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 2rem;">
+                                        <p>No services found.</p>
+                                        <a href="{% url 'create-service-page' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus"></i> Add Your First Service
+                                        </a>
+                                    </td>
+                                </tr>`;
+                            tbody.innerHTML = emptyState;
+                        }
+                    } else {
+                        showToast('Error', data.message || 'Failed to delete service.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error', 'An error occurred while deleting the service.', 'error');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="admin-services-page">
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <h1>Service Management</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">All Services</h3>
+                <a href="{% url 'create-service-page' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Service
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if services %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Unit Price</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in services %}
+                                <tr>
+                                    <td>{{ service.name }}</td>
+                                    <td>{{ service.description|truncatechars:50 }}</td>
+                                    <td>${{ service.unit_price|floatformat:2 }}</td>
+                                    <td>{{ service.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'edit-service-page' service.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <button class="btn btn-sm btn-danger delete-service-btn" data-id="{{ service.id }}" data-name="{{ service.name }}">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 2rem;">
+                    <p>No services have been added yet.</p>
+                    <a href="{% url 'create-service-page' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Your First Service
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Removed modals and related JS as requested -->
+{% endblock %}

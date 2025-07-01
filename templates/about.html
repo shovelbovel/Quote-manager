@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}About QuoteManager{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1>About QuoteManager</h1>
+        <p style="max-width: 700px; margin: 0 auto;">
+            QuoteManager is a powerful service quote management system designed to streamline your business operations and help you win more clients.
+        </p>
+    </div>
+    
+    <div class="card" style="margin-bottom: 3rem;">
+        <div class="card-body" style="padding: 2rem;">
+            <h2>Our Mission</h2>
+            <p>
+                We believe that small businesses and service providers should have access to powerful tools that simplify their operations and help them present a professional image to clients. Our mission is to make quote management simple, efficient, and accessible to businesses of all sizes.
+            </p>
+            <p>
+                With QuoteManager, you can create professional quotes in minutes, track their status, and maintain a complete history of all changes. Our platform helps you stay organized, respond quickly to client requests, and ultimately close more deals.
+            </p>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <h3>For Service Providers</h3>
+                <ul style="padding-left: 1.5rem;">
+                    <li>Create professional quotes in minutes</li>
+                    <li>Track quote status and client responses</li>
+                    <li>Export quotes in PDF or Excel format</li>
+                    <li>Share quotes directly with clients</li>
+                    <li>Maintain a history of all modifications</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <h3>For Administrators</h3>
+                <ul style="padding-left: 1.5rem;">
+                    <li>Manage users and their permissions</li>
+                    <li>Oversee all quotes across the organization</li>
+                    <li>View comprehensive analytics and reports</li>
+                    <li>Configure services and pricing templates</li>
+                    <li>Monitor system activity and performance</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body" style="padding: 2rem;">
+                <h3>For Clients</h3>
+                <ul style="padding-left: 1.5rem;">
+                    <li>Receive professionally formatted quotes</li>
+                    <li>View quotes online or as PDF attachments</li>
+                    <li>Respond to quotes with a simple click</li>
+                    <li>Ask questions and request modifications</li>
+                    <li>Track the progress of accepted quotes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body" style="padding: 2rem; text-align: center;">
+            <h2>Ready to streamline your quote management?</h2>
+            <p style="max-width: 700px; margin: 0 auto 1.5rem;">
+                Join thousands of businesses already saving time and closing more deals with QuoteManager.
+            </p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'quote_create' %}" class="btn btn-lg btn-primary">Create Your First Quote</a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-lg btn-primary">Get Started Today</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

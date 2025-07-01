@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - QuoteManager{% endblock %}
+
+{% block content %}
+<div class="admin-users-page">
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    
+    <h1>User Management</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">All Users</h3>
+                <a href="{% url 'create-user-page' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Add New User
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr data-user-id="{{ user.id }}">
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.get_full_name|default:"-" }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge badge-accepted">Active</span>
+                                {% else %}
+                                    <span class="badge badge-refused">Inactive</span>
+                                {% endif %}
+                                
+                                {% if user.is_staff %}
+                                    <span class="badge" style="background-color: var(--accent-500); color: var(--accent-900);">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td class="actions-cell">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} toggle-active" 
+                                            data-user-id="{{ user.id }}" 
+                                            data-csrf-token="{{ csrf_token }}">
+                                        {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </button>
+                                    <button class="btn btn-sm {% if user.is_staff %}btn-warning{% else %}btn-outline-warning{% endif %} toggle-admin" 
+                                            data-user-id="{{ user.id }}" 
+                                            data-csrf-token="{{ csrf_token }}">
+                                        {% if user.is_staff %}Remove Admin{% else %}Make Admin{% endif %}
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-user" 
+                                            data-user-id="{{ user.id }}" 
+                                            data-username="{{ user.username }}"
+                                            data-csrf-token="{{ csrf_token }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const csrftoken = getCookie('csrftoken');
+    // Toggle user active status
+    document.querySelectorAll('.toggle-active').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const csrfToken = this.dataset.csrfToken;
+            
+            fetch(`/toggle-user-active/${userId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: `csrfmiddlewaretoken=${encodeURIComponent(csrftoken)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update button text and style
+                    const isActive = data.is_active;
+                    this.textContent = isActive ? 'Deactivate' : 'Activate';
+                    this.classList.toggle('btn-outline-danger', isActive);
+                    this.classList.toggle('btn-outline-success', !isActive);
+                    
+                    // Update status badge
+                    const statusBadge = this.closest('tr').querySelector('.badge');
+                    if (statusBadge) {
+                        statusBadge.textContent = isActive ? 'Active' : 'Inactive';
+                        statusBadge.className = isActive ? 'badge badge-accepted' : 'badge badge-refused';
+                    }
+                    
+                    // Show success message
+                    showToast('Success', `User has been ${isActive ? 'activated' : 'deactivated'} successfully.`, 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error', 'An error occurred while updating user status.', 'error');
+            });
+        });
+    });
+
+    // Toggle admin status
+    document.querySelectorAll('.toggle-admin').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            
+            if (confirm('Are you sure you want to change this user\'s admin status?')) {
+                fetch(`/toggle-user-admin/${userId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: `csrfmiddlewaretoken=${encodeURIComponent(csrftoken)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update button text and style
+                        const isAdmin = data.is_staff;
+                        this.textContent = isAdmin ? 'Remove Admin' : 'Make Admin';
+                        this.classList.toggle('btn-warning', isAdmin);
+                        this.classList.toggle('btn-outline-warning', !isAdmin);
+                        
+                        // Update admin badge
+                        const adminBadge = this.closest('tr').querySelector('.badge[style*="var(--accent-500)"]');
+                        if (isAdmin && !adminBadge) {
+                            const statusCell = this.closest('tr').querySelector('td:nth-child(5)');
+                            if (statusCell) {
+                                const newBadge = document.createElement('span');
+                                newBadge.className = 'badge';
+                                newBadge.style = 'background-color: var(--accent-500); color: var(--accent-900); margin-left: 5px;';
+                                newBadge.textContent = 'Admin';
+                                statusCell.appendChild(newBadge);
+                            }
+                        } else if (!isAdmin && adminBadge) {
+                            adminBadge.remove();
+                        }
+                        
+                        // Show success message
+                        showToast('Success', `User ${isAdmin ? 'added to' : 'removed from'} admin role.`, 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error', 'An error occurred while updating user role.', 'error');
+                });
+            }
+        });
+    });
+
+    // Delete user
+    document.querySelectorAll('.delete-user').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const username = this.dataset.username;
+            
+            if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+                const row = this.closest('tr');
+                
+                fetch(`/users/${userId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: `csrfmiddlewaretoken=${encodeURIComponent(csrftoken)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Remove the row from the table
+                        row.remove();
+                        showToast('Success', 'User has been deleted successfully.', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Error', 'An error occurred while deleting the user.', 'error');
+                });
+            }
+        });
+    });
+});
+
+// Helper function to show toast messages
+function showToast(title, message, type) {
+    // Create toast element if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.top = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast show bg-${type} text-white`;
+    toast.style.minWidth = '300px';
+    toast.style.maxWidth = '350px';
+    toast.style.marginBottom = '10px';
+    toast.style.borderRadius = '4px';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    toast.style.overflow = 'hidden';
+    
+    toast.innerHTML = `
+        <div class="toast-header bg-${type} text-white border-0">
+            <strong class="me-auto">${title}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove toast after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    // Add close button functionality
+    const closeButton = toast.querySelector('.btn-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        });
+    }
+}
+</script>
+<style>
+/* Add some spacing between buttons */
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* Make buttons more compact */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.765625rem;
+}
+
+/* Toast styles */
+.toast {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.bg-success {
+    background-color: #198754 !important;
+}
+
+.bg-error {
+    background-color: #dc3545 !important;
+}
+
+.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}My Quotes - QuoteManager{% endblock %}
+
+{% block content %}
+<div class="quote-list-page">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>My Quotes</h1>
+        <a href="{% url 'quote_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Quote
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-body">
+            <form method="get" action="{% url 'quote_list' %}" class="filter-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
+                    <div class="form-group">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="all" {% if status == 'all' %}selected{% endif %}>All Statuses</option>
+                            <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="accepted" {% if status == 'accepted' %}selected{% endif %}>Accepted</option>
+                            <option value="refused" {% if status == 'refused' %}selected{% endif %}>Refused</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="search" class="form-label">Search</label>
+                        <input type="text" name="search" id="search" class="form-control" placeholder="Search by title, client, or reference" value="{{ search }}">
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        {% if status != 'all' or search %}
+                            <a href="{% url 'quote_list' %}" class="btn btn-outline">Clear</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Quotes List -->
+    {% if quotes %}
+        <div class="quote-list">
+            {% for quote in quotes %}
+                <div class="quote-card {{ quote.status }}" data-id="{{ quote.id }}">
+                    <div class="quote-header">
+                        <div>
+                            <div class="quote-reference">{{ quote.reference }}</div>
+                            <h3 class="quote-title">{{ quote.title }}</h3>
+                        </div>
+                        <span class="badge badge-{{ quote.status }}">{{ quote.status|title }}</span>
+                    </div>
+                    <div class="quote-body">
+                        <div class="quote-client">
+                            <div class="quote-client-name">{{ quote.client_name }}</div>
+                            <div class="quote-client-email">{{ quote.client_email }}</div>
+                        </div>
+                        <div class="quote-amount">${{ quote.total_amount|floatformat:2 }}</div>
+                        <div class="quote-dates">
+                            <div>Created: {{ quote.created_at|date:"M d, Y" }}</div>
+                            <div>Valid until: {{ quote.valid_until|date:"M d, Y" }}</div>
+                        </div>
+                    </div>
+                    <div class="quote-footer">
+                        <a href="{% url 'quote_detail' quote.slug %}" class="btn btn-sm btn-primary">View Details</a>
+                        <a href="{% url 'quote_edit' quote.slug %}" class="btn btn-sm btn-outline">Edit</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 3rem;">
+                {% if search %}
+                    <p>No quotes found matching your search criteria.</p>
+                    <a href="{% url 'quote_list' %}" class="btn btn-outline">Clear Filters</a>
+                {% else %}
+                    <p style="margin-bottom: 1.5rem;">You haven't created any quotes yet.</p>
+                    <a href="{% url 'quote_create' %}" class="btn btn-primary">Create Your First Quote</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animations to quote cards
+        const quoteCards = document.querySelectorAll('.quote-card');
+        quoteCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('fade-in');
+            }, index * 50);
+        });
+        
+        // Make the entire card clickable to go to detail page
+        quoteCards.forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Don't trigger if clicking on a button or link
+                if (e.target.closest('a, button')) return;
+                
+                const detailLink = this.querySelector('a.btn-primary');
+                if (detailLink) {
+                    window.location = detailLink.href;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

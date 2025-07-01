@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quote.title }} - QuoteManager{% endblock %}
+
+{% block content %}
+<!-- Hidden input for quote ID to be used by JavaScript -->
+<input type="hidden" name="quote_id" value="{{ quote.id }}">
+
+<div class="quote-detail-page">
+    <!-- Back Button -->
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'quote_list' %}" class="btn btn-sm btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Quotes
+        </a>
+    </div>
+    
+    <!-- Quote Header -->
+    <div class="quote-detail-header">
+        <div>
+            <div style="margin-bottom: 0.5rem;">
+                <span class="badge badge-{{ quote.status }} status-badge">{{ quote.status|title }}</span>
+                <span style="font-size: 0.875rem; color: var(--neutral-600); margin-left: 0.5rem;">{{ quote.reference }}</span>
+            </div>
+            <h1 class="quote-detail-title">{{ quote.title }}</h1>
+        </div>
+        
+        <div class="btn-group">
+            <a href="{% url 'quote_edit' quote.slug %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit Quote
+            </a>
+            <button type="button" class="btn btn-outline dropdown-toggle">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu">
+                <button class="dropdown-item export-btn" data-format="pdf" data-quote-id="{{ quote.id }}">
+                    <i class="fas fa-file-pdf"></i> Export to PDF
+                </button>
+                <button class="dropdown-item export-btn" data-format="excel" data-quote-id="{{ quote.id }}">
+                    <i class="fas fa-file-excel"></i> Export to Excel
+                </button>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item" data-toggle="modal" data-target="#shareModal">
+                    <i class="fas fa-share-alt"></i> Share Quote
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quote Meta Information -->
+    <div class="quote-meta">
+        <div class="quote-meta-item">
+            <div class="quote-meta-label">Client</div>
+            <div class="quote-meta-value">{{ quote.client_name }}</div>
+        </div>
+        
+        <div class="quote-meta-item">
+            <div class="quote-meta-label">Email</div>
+            <div class="quote-meta-value">{{ quote.client_email }}</div>
+        </div>
+        
+        <div class="quote-meta-item">
+            <div class="quote-meta-label">Created</div>
+            <div class="quote-meta-value">{{ quote.created_at|date:"M d, Y" }}</div>
+        </div>
+        
+        <div class="quote-meta-item">
+            <div class="quote-meta-label">Valid Until</div>
+            <div class="quote-meta-value">{{ quote.valid_until|date:"M d, Y" }}</div>
+        </div>
+    </div>
+    
+    <!-- Quote Description -->
+    {% if quote.description %}
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">Description</h3>
+            </div>
+            <div class="card-body">
+                <p>{{ quote.description }}</p>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Quote Address -->
+    {% if quote.client_address %}
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">Client Address</h3>
+            </div>
+            <div class="card-body">
+                <p>{{ quote.client_address|linebreaks }}</p>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Quote Items -->
+    <div class="card quote-items" style="margin-top: 1.5rem;">
+        <div class="card-header">
+            <h3 style="margin: 0;">Quote Items</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Description</th>
+                            <th style="text-align: right;">Quantity</th>
+                            <th style="text-align: right;">Unit Price</th>
+                            <th style="text-align: right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item.service.name }}</td>
+                                <td>{{ item.description }}</td>
+                                <td style="text-align: right;">{{ item.quantity }}</td>
+                                <td style="text-align: right;">${{ item.unit_price|floatformat:2 }}</td>
+                                <td style="text-align: right;">${{ item.total_price|floatformat:2 }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center;">No items added to this quote yet.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" style="text-align: right;"><strong>Total:</strong></td>
+                            <td style="text-align: right;"><strong>${{ quote.total_amount|floatformat:2 }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Update -->
+    <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+            <h3 style="margin: 0;">Update Status</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'quote_edit' quote.slug %}" class="status-change-form">
+                {% csrf_token %}
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <div style="flex: 1;">
+                        <select name="status" class="form-select status-select" data-original="{{ quote.status }}">
+                            <option value="pending" {% if quote.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="accepted" {% if quote.status == 'accepted' %}selected{% endif %}>Accepted</option>
+                            <option value="refused" {% if quote.status == 'refused' %}selected{% endif %}>Refused</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+                <input type="hidden" name="update_status_only" value="1">
+            </form>
+        </div>
+    </div>
+    
+    <!-- Quote History -->
+    <div class="card quote-history">
+        <div class="card-header">
+            <h3 style="margin: 0;">Quote History</h3>
+        </div>
+        <div class="card-body">
+            {% for entry in history %}
+                <div class="history-item">
+                    <div class="history-item-header">
+                        <span class="history-item-action">{{ entry.action|title }}</span>
+                        <span class="history-item-date">{{ entry.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="history-item-user">by {{ entry.user.get_full_name|default:entry.user.username }}</div>
+                    {% if entry.details %}
+                        <div class="history-item-details">{{ entry.details }}</div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p style="text-align: center;">No history available for this quote.</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Share Quote</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form class="share-form" data-quote-id="{{ quote.id }}">
+                        <div class="form-group">
+                            <label for="share-email" class="form-label">Email Address</label>
+                            <input type="email" name="email" id="share-email" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Share</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

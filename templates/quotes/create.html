@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Create Quote - QuoteManager{% endblock %}
+
+{% block content %}
+<div class="quote-create-page">
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'quote_list' %}" class="btn btn-sm btn-outline">
+            <i class="fas fa-arrow-left"></i> Back to Quotes
+        </a>
+    </div>
+    
+    <h1>Create New Quote</h1>
+    
+    <form method="post" action="{% url 'quote_create' %}" class="quote-items-form">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">Basic Information</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Quote Title *</label>
+                        <input type="text" name="title" id="title" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="valid_until" class="form-label">Valid Until *</label>
+                        <input type="date" name="valid_until" id="valid_until" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Client Information -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">Client Information</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                        <label for="client_name" class="form-label">Client Name *</label>
+                        <input type="text" name="client_name" id="client_name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="client_email" class="form-label">Client Email *</label>
+                        <input type="email" name="client_email" id="client_email" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="client_address" class="form-label">Client Address</label>
+                    <textarea name="client_address" id="client_address" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quote Items -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">Quote Items</h3>
+            </div>
+            <div class="card-body">
+                <div class="items-container">
+                    <!-- Items will be added here -->
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <button type="button" class="btn btn-outline add-item-btn">
+                        <i class="fas fa-plus"></i> Add Item
+                    </button>
+                </div>
+                
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <strong>Total: $<span class="quote-total-amount">0.00</span></strong>
+                    <input type="hidden" name="total_amount" value="0">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submit Buttons -->
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="{% url 'quote_list' %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create Quote</button>
+        </div>
+    </form>
+    
+    <!-- Item Template -->
+    <template id="item-template">
+        <div class="item-row" style="display: grid; grid-template-columns: 2fr 3fr 1fr 1fr 1fr auto; gap: 1rem; margin-bottom: 1rem; align-items: center;" data-new="true">
+            <div>
+                <select name="item_service" class="form-select item-service" required>
+                    <option value="">Select a service</option>
+                    {% for service in services %}
+                        <option value="{{ service.id }}" data-price="{{ service.unit_price|default:'0' }}">
+                            {{ service.name }} ({{ service.unit_price|default:'0' }} €)
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <input type="text" name="item_description" class="form-control item-description" placeholder="Description">
+            </div>
+            <div>
+                <input type="number" name="item_quantity" class="form-control item-quantity" value="1" min="1" required>
+            </div>
+            <div>
+                <input type="number" step="0.01" name="item_price" class="form-control item-price" placeholder="0.00" required>
+            </div>
+            <div class="text-end">
+                <span class="item-total fw-bold">0.00</span> €
+                <input type="hidden" name="item_total" class="item-total-input" value="0">
+            </div>
+            <div>
+                <button type="button" class="btn btn-sm btn-danger remove-item-btn">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </template>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/main.js' %}"></script>
+<script>
+    // Function to fetch services from the API
+    async function fetchServices() {
+        try {
+            const response = await fetch('/api/services/', {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                }
+            });
+            
+            if (!response.ok) {
+                // Log the error but don't show it to the user
+                console.debug('Failed to fetch services:', response.status);
+                return [];
+            }
+            
+            const data = await response.json();
+            return Array.isArray(data) ? data : [];
+        } catch (error) {
+            // Silently handle any errors
+            console.debug('Error fetching services:', error);
+            return [];
+        }
+    }
+
+    // Function to populate service select dropdown
+    async function populateServiceSelect(selectElement) {
+        try {
+            const services = await fetchServices();
+            
+            // Clear existing options except the first one (default)
+            while (selectElement.options.length > 1) {
+                selectElement.remove(1);
+            }
+            
+            // Add services to the select if any are available
+            if (services && services.length > 0) {
+                services.forEach(service => {
+                    const option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = service.name;
+                    option.setAttribute('data-price', service.unit_price || '0');
+                    selectElement.appendChild(option);
+                });
+            }
+            
+            return true;
+        } catch (error) {
+            // Silently handle the error - don't show any message to the user
+            console.error('Error populating services:', error);
+            return false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Initialize quote items
+        if (typeof initializeQuoteItems === 'function') {
+            initializeQuoteItems();
+        } else {
+            console.error('initializeQuoteItems() is not defined!');
+        }
+        
+        // Populate service dropdowns
+        const serviceSelects = document.querySelectorAll('.item-service');
+        serviceSelects.forEach(select => {
+            // Only populate if it's not already populated
+            if (select.options.length <= 1) {
+                populateServiceSelect(select);
+            }
+        });
+    });
+</script>
+{% endblock %}

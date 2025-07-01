@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}QuoteManager - Streamline Your Service Quotes{% endblock %}
+
+{% block content %}
+<section class="hero" style="background: linear-gradient(rgba(0, 86, 179, 0.9), rgba(0, 160, 160, 0.9)); color: white; padding: 3rem 0; margin: -1.5rem -1rem 2rem; border-radius: var(--radius-lg);">
+    <div class="container">
+        <div style="max-width: 700px; margin: 0 auto; text-align: center;">
+            <h1 style="font-size: 3rem; margin-bottom: 1.5rem;">Streamline Your Service Quotes</h1>
+            <p style="font-size: 1.25rem; margin-bottom: 2rem;">Create, manage, and track all your service quotes in one place. Save time and close more deals with our powerful quote management system.</p>
+            <div>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-lg" style="background-color: white; color: var(--primary-600); margin-right: 1rem;">Go to Dashboard</a>
+                    <a href="{% url 'quote_create' %}" class="btn btn-lg" style="background-color: var(--accent-500); color: var(--accent-900);">Create Quote</a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-lg" style="background-color: white; color: var(--primary-600); margin-right: 1rem;">Get Started</a>
+                    <a href="{% url 'login' %}" class="btn btn-lg" style="background-color: var(--accent-500); color: var(--accent-900);">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features fade-in">
+    <h2 class="text-center" style="margin-bottom: 3rem;">Features That Make Quote Management Simple</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; color: var(--primary-500); margin-bottom: 1rem;">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <h3>Quick Quote Creation</h3>
+                <p>Create professional quotes in minutes with our easy-to-use templates and customizable fields.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; color: var(--secondary-500); margin-bottom: 1rem;">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>Complete History</h3>
+                <p>Track every change to your quotes with a detailed history of modifications and status updates.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; color: var(--accent-500); margin-bottom: 1rem;">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <h3>Export Options</h3>
+                <p>Export your quotes to PDF or Excel with a single click for easy sharing and record keeping.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2rem;">
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; color: var(--success-500); margin-bottom: 1rem;">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Analytics Dashboard</h3>
+                <p>Track your quote performance with detailed analytics and visualizations to optimize your business.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; color: var(--warning-500); margin-bottom: 1rem;">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Smart Notifications</h3>
+                <p>Stay informed with real-time notifications for quote status changes and important updates.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body" style="text-align: center; padding: 2rem;">
+                <div style="font-size: 3rem; color: var(--error-500); margin-bottom: 1rem;">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <h3>Easy Sharing</h3>
+                <p>Share quotes with clients via email or unique links, making it simple to collaborate and close deals.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="testimonials" style="margin-top: 4rem; padding: 3rem 0; background-color: var(--neutral-100); border-radius: var(--radius-lg);">
+    <div class="container">
+        <h2 class="text-center" style="margin-bottom: 3rem;">What Our Users Say</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div class="card">
+                <div class="card-body" style="padding: 2rem;">
+                    <div style="color: var(--accent-500); margin-bottom: 1rem;">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p style="font-style: italic; margin-bottom: 1.5rem;">"QuoteManager has transformed how we handle client quotes. The time savings alone is worth it, but the professional presentation has also helped us win more business."</p>
+                    <div>
+                        <strong>Sarah Johnson</strong><br>
+                        <span style="color: var(--neutral-600);">Web Design Agency</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body" style="padding: 2rem;">
+                    <div style="color: var(--accent-500); margin-bottom: 1rem;">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p style="font-style: italic; margin-bottom: 1.5rem;">"The analytics dashboard gives me instant insights into our quote performance. I can see which services are most popular and where we need to improve our offerings."</p>
+                    <div>
+                        <strong>Michael Chang</strong><br>
+                        <span style="color: var(--neutral-600);">IT Consulting</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body" style="padding: 2rem;">
+                    <div style="color: var(--accent-500); margin-bottom: 1rem;">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p style="font-style: italic; margin-bottom: 1.5rem;">"Being able to track every change to a quote has eliminated so many misunderstandings with clients. The history feature is a lifesaver for accountability."</p>
+                    <div>
+                        <strong>Lisa Patel</strong><br>
+                        <span style="color: var(--neutral-600);">Interior Design Studio</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta" style="margin-top: 4rem; text-align: center;">
+    <h2>Ready to streamline your quote management?</h2>
+    <p style="max-width: 600px; margin: 1rem auto 2rem;">Join thousands of businesses already saving time and winning more clients with our powerful quote management system.</p>
+    
+    {% if user.is_authenticated %}
+        <a href="{% url 'quote_create' %}" class="btn btn-lg btn-primary">Create Your First Quote</a>
+    {% else %}
+        <a href="{% url 'register' %}" class="btn btn-lg btn-primary">Get Started For Free</a>
+    {% endif %}
+</section>
+{% endblock %}

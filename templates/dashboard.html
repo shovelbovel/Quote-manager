@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - QuoteManager{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <h1>Welcome, {{ user.get_full_name|default:user.username }}</h1>
+    
+    <!-- Stats Overview -->
+    <div class="stats-container">
+        <div class="stat-card" style="border-top: 3px solid var(--primary-500);">
+            <div class="stat-title">Total Quotes</div>
+            <div class="stat-value">{{ quotes.count }}</div>
+            <div class="stat-description">All-time quote count</div>
+        </div>
+        
+        <div class="stat-card" style="border-top: 3px solid var(--success-500);">
+            <div class="stat-title">Accepted</div>
+            <div class="stat-value">{{ accepted_count }}</div>
+            <div class="stat-description">Quotes accepted by clients</div>
+        </div>
+        
+        <div class="stat-card" style="border-top: 3px solid var(--error-500);">
+            <div class="stat-title">Refused</div>
+            <div class="stat-value">{{ refused_count }}</div>
+            <div class="stat-description">Quotes refused by clients</div>
+        </div>
+        
+        <div class="stat-card" style="border-top: 3px solid var(--warning-500);">
+            <div class="stat-title">Pending</div>
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-description">Awaiting client response</div>
+        </div>
+    </div>
+    
+    <div class="stats-container">
+        <div class="stat-card" style="border-top: 3px solid var(--secondary-500); grid-column: span 2;">
+            <div class="stat-title">Total Value</div>
+            <div class="stat-value">${{ total_value|floatformat:2 }}</div>
+            <div class="stat-description">Combined value of all quotes</div>
+        </div>
+        
+        <div class="stat-card" style="border-top: 3px solid var(--accent-500); grid-column: span 2;">
+            <div class="stat-title">Accepted Value</div>
+            <div class="stat-value">${{ accepted_value|floatformat:2 }}</div>
+            <div class="stat-description">Value of accepted quotes</div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div style="margin: 2rem 0;">
+        <h2>Quick Actions</h2>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{% url 'quote_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New Quote
+            </a>
+            <a href="{% url 'quote_list' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> View All Quotes
+            </a>
+            <a href="{% url 'profile' %}" class="btn btn-outline">
+                <i class="fas fa-user-cog"></i> Update Profile
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Quotes -->
+    <div style="margin: 2rem 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2>Recent Quotes</h2>
+            <a href="{% url 'quote_list' %}" class="btn btn-sm btn-outline">View All</a>
+        </div>
+        
+        {% if recent_quotes %}
+            <div class="quote-list">
+                {% for quote in recent_quotes %}
+                    <div class="quote-card {{ quote.status }}">
+                        <div class="quote-header">
+                            <div>
+                                <div class="quote-reference">{{ quote.reference }}</div>
+                                <h3 class="quote-title">{{ quote.title }}</h3>
+                            </div>
+                            <span class="badge badge-{{ quote.status }}">{{ quote.status|title }}</span>
+                        </div>
+                        <div class="quote-body">
+                            <div class="quote-client">
+                                <div class="quote-client-name">{{ quote.client_name }}</div>
+                                <div class="quote-client-email">{{ quote.client_email }}</div>
+                            </div>
+                            <div class="quote-amount">${{ quote.total_amount|floatformat:2 }}</div>
+                            <div class="quote-dates">
+                                <div>Created: {{ quote.created_at|date:"M d, Y" }}</div>
+                                <div>Valid until: {{ quote.valid_until|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="quote-footer">
+                            <a href="{% url 'quote_detail' quote.slug %}" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="{% url 'quote_edit' quote.slug %}" class="btn btn-sm btn-outline">Edit</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body" style="text-align: center; padding: 3rem;">
+                    <p style="margin-bottom: 1.5rem;">You haven't created any quotes yet.</p>
+                    <a href="{% url 'quote_create' %}" class="btn btn-primary">Create Your First Quote</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Notifications -->
+    {% if notifications %}
+        <div style="margin: 2rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Notifications</h2>
+                <button class="btn btn-sm btn-outline mark-all-read">Mark All Read</button>
+            </div>
+            
+            <div class="notifications-list">
+                {% for notification in notifications %}
+                    <div class="notification {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}">
+                        <button class="notification-close"><i class="fas fa-times"></i></button>
+                        <div class="notification-message">{{ notification.message }}</div>
+                        <div class="notification-meta">
+                            <span>{{ notification.created_at|date:"M d, Y H:i" }}</span>
+                            {% if notification.quote %}
+                                <a href="{% url 'quote_detail' notification.quote.slug %}">View Quote</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Additional dashboard-specific JavaScript could be added here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add subtle animation to stats
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('slide-in');
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}
