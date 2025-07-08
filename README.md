@@ -3,17 +3,17 @@
 ## Description
 A comprehensive web application for managing service quotes and estimates. This system allows businesses to create, modify, track, and manage quotes with different user roles and permissions. Built with Django backend using HTML/CSS frontend and SQLite database.
 
-## 🎯 Project Objectives
+## Project Objectives
 Develop a web application that enables users to efficiently manage service quotes with features including creation, modification, deletion, consultation, search, filtering, and export capabilities.
 
-## 🚀 Key Features
+## Key Features
 
-### 👥 For Non-Authenticated Users
+### For Non-Authenticated Users
 - **Quote Consultation**: View available quotes list
 - **Search & Filter**: Search quotes by client, service, amount, or date
 - **Public Quote Access**: Browse publicly available quotes
 
-### 🔐 For Authenticated Users
+### For Authenticated Users
 - **Account Management**: Create account with email and password
 - **Authentication**: Secure login/logout functionality
 - **Quote Operations**:
@@ -23,19 +23,19 @@ Develop a web application that enables users to efficiently manage service quote
   - Update quote status (pending, accepted, rejected)
 - **Export Functionality**: Export quotes to PDF or Excel formats
 
-### 👨‍💼 For Administrators
+### For Administrators
 - **User Management**: Create, modify, and delete user accounts
 - **Complete Quote Management**: Full CRUD operations on all quotes
 - **Service Management**: Add, modify, or remove company services
 - **Dashboard**: Statistics overview (quote count, total amount, acceptance rates)
 
-### 🔥 Advanced Features
+### Advanced Features
 - **Notifications**: System alerts for quote status changes
 - **Modification History**: Track all changes with timestamps and user info
 - **Quote Sharing**: Share quotes via email or unique links
 - **Real-time Updates**: Live notifications for status changes
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - **Django**: Python web framework
@@ -59,7 +59,7 @@ Develop a web application that enables users to efficiently manage service quote
 - pip (Python package manager)
 - Web browser
 
-## 🚀 Installation
+## Installation
 
 ### Quick Setup
 
@@ -106,7 +106,7 @@ Develop a web application that enables users to efficiently manage service quote
    - Open browser and go to: `http://127.0.0.1:8000/`
    - Admin panel: `http://127.0.0.1:8000/admin/`
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 quote-management-system/
@@ -149,7 +149,7 @@ quote-management-system/
     └── exports/
 ```
 
-## 📊 Database Models
+## Database Models
 
 ### Core Models (SQLite)
 ```python
@@ -199,7 +199,7 @@ urlpatterns = [
 ]
 ```
 
-## 🎨 Frontend Structure
+## Frontend Structure
 
 ### HTML Templates
 - **base.html**: Main layout template
@@ -239,7 +239,7 @@ function updateQuoteStatus(quoteId, status) {
 }
 ```
 
-## 🔒 JWT Authentication
+## JWT Authentication
 
 ### Implementation
 ```python
@@ -274,7 +274,7 @@ function getAuthHeaders() {
 }
 ```
 
-## 📱 Key Features Implementation
+## Key Features Implementation
 
 ### Search and Filter
 ```html
@@ -306,7 +306,7 @@ def export_quote_pdf(request, pk):
     return response
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Run Tests
 ```bash
@@ -343,7 +343,7 @@ class QuoteModelTest(TestCase):
         self.assertEqual(quote.client, 'Test Client')
 ```
 
-## 📦 Requirements.txt
+## Requirements.txt
 ```
 Django==4.2.0
 djangorestframework==3.14.0
@@ -354,7 +354,7 @@ Pillow==10.0.0
 python-decouple==3.8
 ```
 
-## ⚙️ Settings Configuration
+## Settings Configuration
 ```python
 # settings.py key configurations
 DATABASES = {
@@ -375,7 +375,7 @@ SIMPLE_JWT = {
 }
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Setup
 1. Set `DEBUG = False` in settings.py
@@ -391,7 +391,7 @@ DEBUG=False
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 ```
 
-## 🔄 Future Enhancements
+## Future Enhancements
 - Upgrade to PostgreSQL for production
 - Add real-time WebSocket notifications
 - Implement email notifications
@@ -399,7 +399,7 @@ ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 - API rate limiting
 - Advanced reporting and analytics
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/new-feature`)
@@ -407,15 +407,11 @@ ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 4. Push to branch (`git push origin feature/new-feature`)
 5. Open Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License.
 
-## 👥 Support
 
-For support and questions:
-- Create an issue on GitHub
-- Email: [your-email@example.com]
 
 ---
 *Professional Quote Management System - Built with Django, HTML, CSS, and SQLite*
